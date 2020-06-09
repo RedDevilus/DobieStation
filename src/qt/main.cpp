@@ -14,11 +14,11 @@ int main(int argc, char** argv)
     if(settings.value("AppsUseLightTheme")==0){
         qApp->setStyle(QStyleFactory::create("Fusion"));
         QPalette darkPalette;
-        QColor darkColor = QColor(0,100,100);
+        QColor darkColor = QColor(60,60,60);
         QColor disabledColor = QColor(200,45,69);
         darkPalette.setColor(QPalette::Window, darkColor);
         darkPalette.setColor(QPalette::WindowText, Qt::white);
-        darkPalette.setColor(QPalette::Base, QColor(60,60,60));
+        darkPalette.setColor(QPalette::Base, QColor(0,100,100));
         darkPalette.setColor(QPalette::AlternateBase, darkColor);
         darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
         darkPalette.setColor(QPalette::ToolTipText, Qt::white);
