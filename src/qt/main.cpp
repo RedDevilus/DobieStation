@@ -2,7 +2,6 @@
 #include <memory>
 #include "emuwindow.hpp"
 #include <QStyleFactory>
-#include <QColorDialog>
 using namespace std;
 
 int main(int argc, char** argv)
@@ -40,27 +39,6 @@ int main(int argc, char** argv)
         qApp->setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
     }
 #endif
-	bool ok;
-	
-	Qcolor darkColor = QColorDialog::getColor(Qt::white, this);
-    if(color.isValid())
-    {
-        ui->textEdit->setTextColor(color);
-    }
-	bool ok;
-	
-	Qcolor darkColor = QColorDialog::getColor(Qt::black, this);
-    if(color.isValid())
-    {
-        ui->textEdit->setTextColor(color);
-    }
-	bool ok;
-	
-	Qcolor darkColor = QColorDialog::getColor(Qt::red, this);
-    if(color.isValid())
-    {
-        ui->textEdit->setTextColor(color);
-    }
 
     QApplication a(argc, argv);
     auto window = unique_ptr<EmuWindow>(new EmuWindow());
