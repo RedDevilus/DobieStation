@@ -15,7 +15,7 @@ int main(int argc, char** argv)
         qApp->setStyle(::create("Fusion"));
         QPalette darkPalette;
         QColor darkColor = QColor(90,90,90);
-        QColor disabledColor = QColor(200,44,69); 199, 44, 65
+        QColor disabledColor = QColor(200,44,69);
         darkPalette.setColor(QPalette::Window, darkColor);
         darkPalette.setColor(QPalette::WindowText, Qt::white);
         darkPalette.setColor(QPalette::Base, QColor(54,57,62));
