@@ -9,16 +9,16 @@ int main(int argc, char** argv)
     QApplication::setOrganizationName("PSI");
     QApplication::setApplicationName("DobieStation");
     QApplication::setOrganizationDomain("https://github.com/PSI-Rockin/DobieStation");
-#ifdef Q_OS_WIN //Will make Dobiestation compile to dark if its a windows OS and the user uses dark theme
+#ifdef Q_OS_WIN //Will make Dobiestation default to dark mode only if it meets 2 conditions: OS=Windows  Apps=DarkMode
     QSettings settings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",QSettings::NativeFormat);
     if(settings.value("AppsUseLightTheme")==0){
-        qApp->setStyle(QStyleFactory::create("Fusion"));
+        qApp->setStyle(::create("Fusion"));
         QPalette darkPalette;
-        QColor darkColor = QColor(45,45,45);
-        QColor disabledColor = QColor(127,127,127);
+        QColor darkColor = QColor(90,90,90);
+        QColor disabledColor = QColor(200,44,69); 199, 44, 65
         darkPalette.setColor(QPalette::Window, darkColor);
         darkPalette.setColor(QPalette::WindowText, Qt::white);
-        darkPalette.setColor(QPalette::Base, QColor(18,18,18));
+        darkPalette.setColor(QPalette::Base, QColor(54,57,62));
         darkPalette.setColor(QPalette::AlternateBase, darkColor);
         darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
         darkPalette.setColor(QPalette::ToolTipText, Qt::white);
