@@ -14,11 +14,11 @@ int main(int argc, char** argv)
     if(settings.value("AppsUseLightTheme")==0){
         qApp->setStyle(QStyleFactory::create("Fusion"));
         QPalette darkPalette;
-        QColor darkColor = QColor(90,90,90);
-        QColor disabledColor = QColor(200,44,69);
+        QColor darkColor = QColor(0,100,100);
+        QColor disabledColor = QColor(200,45,69);
         darkPalette.setColor(QPalette::Window, darkColor);
         darkPalette.setColor(QPalette::WindowText, Qt::white);
-        darkPalette.setColor(QPalette::Base, QColor(54,57,62));
+        darkPalette.setColor(QPalette::Base, QColor(60,60,60));
         darkPalette.setColor(QPalette::AlternateBase, darkColor);
         darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
         darkPalette.setColor(QPalette::ToolTipText, Qt::white);
@@ -28,9 +28,9 @@ int main(int argc, char** argv)
         darkPalette.setColor(QPalette::ButtonText, Qt::white);
         darkPalette.setColor(QPalette::Disabled, QPalette::ButtonText, disabledColor);
         darkPalette.setColor(QPalette::BrightText, Qt::red);
-        darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
+        darkPalette.setColor(QPalette::Link, QColor(42, 130, 220));
 
-        darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+        darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 220));
         darkPalette.setColor(QPalette::HighlightedText, Qt::black);
         darkPalette.setColor(QPalette::Disabled, QPalette::HighlightedText, disabledColor);
 
