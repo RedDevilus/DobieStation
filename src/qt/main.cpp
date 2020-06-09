@@ -12,7 +12,7 @@ int main(int argc, char** argv)
 #ifdef Q_OS_WIN //Will make Dobiestation default to dark mode only if it meets 2 conditions: OS=Windows  Apps=DarkMode
     QSettings settings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",QSettings::NativeFormat);
     if(settings.value("AppsUseLightTheme")==0){
-        qApp->setStyle(::create("Fusion"));
+        qApp->setStyle(QStyleFactory::create("Fusion"));
         QPalette darkPalette;
         QColor darkColor = QColor(90,90,90);
         QColor disabledColor = QColor(200,44,69);
