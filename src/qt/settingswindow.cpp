@@ -220,9 +220,10 @@ PathTab::PathTab(QWidget* parent)
 {
 BackgroundTab::BackgroundTab(QWidget* parent)
     : QWidget(parent)
-	bool ok;
+{
     QRadioButton* color_1_checkbox = new QRadioButton(tr("Color1"));
     QRadioButton* color_2_checkbox = new QRadioButton(tr("Color2"));
+	bool ok;
 	Qcolor darkColor = QColorDialog::getColor(Qt::black, this);
     if(color.isValid())
     {
