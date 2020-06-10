@@ -217,6 +217,24 @@ PathTab::PathTab(QWidget* parent)
     setLayout(layout);
 }
 
+{
+BackgroundTab::BackgroundTab(QWidget* parent)
+    : QWidget(parent)
+	bool ok;
+    QRadioButton* color_1_checkbox = new QRadioButton(tr("Color1"));
+    QRadioButton* color_2_checkbox = new QRadioButton(tr("Color2"));
+	Qcolor darkColor = QColorDialog::getColor(Qt::black, this);
+    if(color.isValid())
+    {
+        ui->textEdit->setTextColor(color);
+    }
+    Qcolor disabledColor = QColorDialog::getColor(Qt::red, this);
+    if (color.isValid())
+    {
+        ui->textEdit->setTextColor(color);
+    }
+}
+
 SettingsWindow::SettingsWindow(QWidget *parent)
     : QDialog(parent)
 {
@@ -225,10 +243,12 @@ SettingsWindow::SettingsWindow(QWidget *parent)
 
     general_tab = new GeneralTab(this);
     path_tab = new PathTab(this);
+	background_tab = new BackgroundTabTab(this);
 
     tab_widget = new QTabWidget(this);
     tab_widget->addTab(general_tab, tr("General"));
     tab_widget->addTab(path_tab, tr("Paths"));
+	tab_widget->addTab(background_tab, tr("Background"));
     tab_widget->setCurrentIndex(TAB::GENERAL);
 
     QDialogButtonBox* close_buttons = new QDialogButtonBox(
