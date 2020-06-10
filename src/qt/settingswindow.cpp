@@ -217,7 +217,7 @@ PathTab::PathTab(QWidget* parent)
     setLayout(layout);
 }
 
-{
+
 BackgroundTab::BackgroundTab(QWidget* parent)
     : QWidget(parent)
 {
