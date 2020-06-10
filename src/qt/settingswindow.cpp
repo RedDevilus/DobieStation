@@ -243,7 +243,7 @@ SettingsWindow::SettingsWindow(QWidget *parent)
 
     general_tab = new GeneralTab(this);
     path_tab = new PathTab(this);
-	background_tab = new BackgroundTabTab(this);
+	background_tab = new BackgroundTab(this);
 
     tab_widget = new QTabWidget(this);
     tab_widget->addTab(general_tab, tr("General"));
