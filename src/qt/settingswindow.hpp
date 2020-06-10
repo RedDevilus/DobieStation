@@ -25,6 +25,13 @@ class PathTab : public QWidget
         QLabel* bios_info = nullptr;
 };
 
+class BackgroundTab : public QWidget
+{
+    Q_OBJECT
+    public:
+        explicit BackgroundTab(QWidget* parent = nullptr);
+};
+
 class SettingsWindow : public QDialog
 {
     Q_OBJECT
