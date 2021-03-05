@@ -6,10 +6,20 @@ TARGET = ../DobieStation
 CONFIG += console c++14
 CONFIG -= app_bundle
 
-INCLUDEPATH += ../../ext/libdeflate
-LIBS += -L../libdeflate
-win32:LIBS += -llibdeflate
-else:LIBS += -ldeflate
+INCLUDEPATH += ../../ext/zlib/include \
+               ../../ext/libchdr/include
+LIBS += -L../libchdr \
+        -L../lzma \
+        -L../libFLAC \
+        -L../zlib
+win32:LIBS += -llibchdr \
+              -llzma \
+              -llibFLAC \
+              -lzlib
+else:LIBS += -llibchdr \
+             -llzma \
+             -llibFLAC \
+             -lzlib
 
 QMAKE_CFLAGS_RELEASE -= -O
 QMAKE_CFLAGS_RELEASE -= -O1
@@ -17,12 +27,13 @@ QMAKE_CFLAGS_RELEASE *= -O2
 QMAKE_CFLAGS_RELEASE -= -O3
 
 DEFINES += QT_DEPRECATED_WARNINGS
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
+#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 
 target.path = /usr/local/bin/
 INSTALLS += target
 
 SOURCES += ../../src/qt/main.cpp \
+    ../../src/core/audio/utils.cpp \
     ../../src/core/errors.cpp \
     ../../src/core/ee/emotion.cpp \
     ../../src/core/emulator.cpp \
@@ -52,12 +63,17 @@ SOURCES += ../../src/qt/main.cpp \
     ../../src/core/ee/intc.cpp \
     ../../src/core/iop/cdvd/cdvd.cpp \
     ../../src/core/iop/cdvd/cso_reader.cpp\
+    ../../src/core/iop/cdvd/chd_reader.cpp\
     ../../src/core/iop/sio2.cpp \
     ../../src/core/ee/vu.cpp \
     ../../src/core/ee/emotion_vu0.cpp \
     ../../src/core/iop/firewire.cpp \
     ../../src/core/iop/gamepad.cpp \
-    ../../src/core/iop/spu.cpp \
+    ../../src/core/iop/spu/spu.cpp \
+    ../../src/core/iop/spu/spu_adpcm.cpp \
+    ../../src/core/iop/spu/spu_envelope.cpp \
+    ../../src/core/iop/spu/spu_interpolate.cpp \
+    ../../src/core/iop/spu/spu_reverb.cpp \
     ../../src/qt/emuthread.cpp \
     ../../src/core/tests/iop/alu.cpp \
     ../../src/core/ee/vif.cpp \
@@ -107,6 +123,7 @@ SOURCES += ../../src/qt/main.cpp \
     ../../src/core/iop/iop_intc.cpp
 
 HEADERS += \
+    ../../src/core/audio/utils.hpp \
     ../../src/core/errors.hpp \
     ../../src/core/ee/emotion.hpp \
     ../../src/core/emulator.hpp \
@@ -134,11 +151,15 @@ HEADERS += \
     ../../src/core/ee/intc.hpp \
     ../../src/core/iop/cdvd/cdvd.hpp \
     ../../src/core/iop/cdvd/cso_reader.hpp\
+    ../../src/core/iop/cdvd/chd_reader.hpp\
     ../../src/core/iop/sio2.hpp \
     ../../src/core/ee/vu.hpp \
     ../../src/core/iop/firewire.hpp \
     ../../src/core/iop/gamepad.hpp \
-    ../../src/core/iop/spu.hpp \
+    ../../src/core/iop/spu/spu.hpp \
+    ../../src/core/iop/spu/ps_adpcm.hpp \
+    ../../src/core/iop/spu/spu_envelope.hpp \
+    ../../src/core/iop/spu/spu_utils.hpp \
     ../../src/qt/emuthread.hpp \
     ../../src/core/ee/vif.hpp \
     ../../src/core/int128.hpp \

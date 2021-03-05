@@ -16,7 +16,10 @@ class GraphicsSynthesizer
         int frame_count;
         uint32_t* output_buffer1;
         uint32_t* output_buffer2;//double buffered to prevent mutex lock
-        std::mutex output_buffer1_mutex, output_buffer2_mutex;
+        uint128_t* gs_download_buffer;
+        uint32_t gs_download_qwc;
+        uint32_t gs_download_addr;
+        std::mutex output_buffer1_mutex, output_buffer2_mutex, download_mutex;
         bool using_first_buffer;
         std::unique_lock<std::mutex> current_lock;
 
@@ -38,9 +41,11 @@ class GraphicsSynthesizer
 
         inline bool stalled() { return reg.CSR.SIGNAL_stall; }
 
+        void swap_CSR_field();
         void set_CSR_FIFO(uint8_t value);
-        void set_VBLANK(bool is_VBLANK);
+        void set_VBLANK_irq(bool is_VBLANK);
         void assert_FINISH();
+        void assert_HBLANK();
         void assert_VSYNC();
 
         void set_CRT(bool interlaced, int mode, bool frame_mode);
@@ -65,6 +70,7 @@ class GraphicsSynthesizer
         void send_message(GSMessage message);
         void wake_gs_thread();
 
-        std::tuple<uint128_t, uint32_t>request_gs_download();
+        void request_gs_download();
+        std::tuple<uint128_t, bool>read_gs_download();
 };
 #endif // GS_HPP

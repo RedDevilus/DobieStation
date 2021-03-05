@@ -34,7 +34,7 @@ enum GSCommand:uint8_t
 {
     write64_t, write64_privileged_t, write32_privileged_t,
     set_rgba_t, set_st_t, set_uv_t, set_xyz_t, set_xyzf_t, set_crt_t,
-    render_crt_t, assert_finish_t, assert_vsync_t, set_vblank_t, memdump_t, die_t,
+    render_crt_t, assert_finish_t, assert_hblank_t, assert_vsync_t, swap_field_t, memdump_t, die_t,
     save_state_t, load_state_t, gsdump_t, request_local_host_tx,
 };
 
@@ -91,6 +91,11 @@ union GSMessagePayload
     } render_payload;
     struct
     {
+        uint128_t* target;
+        std::mutex* target_mutex;
+    } download_payload;
+    struct
+    {
         std::ofstream* state;
     } save_state_payload;
     struct
@@ -136,9 +141,9 @@ union GSReturnMessagePayload
     } no_payload;//C++ doesn't like the empty struct
     struct
     {
-        uint128_t quad_data;
-        uint32_t status;
-    } data_payload;
+        uint32_t quad_count;
+    } download_payload;
+
 };
 
 struct GSReturnMessage
@@ -496,6 +501,7 @@ class GraphicsSynthesizerThread
         bool depth_test(int32_t x, int32_t y, uint32_t z);
         void draw_pixel(int32_t x, int32_t y, uint32_t z, RGBAQ_REG& color);
         uint32_t lookup_frame_color(int32_t x, int32_t y);
+        bool is_32bit_texture();
         void render_primitive();
         void render_point();
         void render_line();
@@ -505,7 +511,7 @@ class GraphicsSynthesizerThread
                 float step_x0, float step_x1, float scx1, float scx2, TexLookupInfo& tex_info);
         void render_sprite();
         void write_HWREG(uint64_t data);
-        uint128_t local_to_host();
+        uint32_t local_to_host(uint128_t *target);
         void unpack_PSMCT24(uint64_t data, int offset, bool z_format);
         uint64_t pack_PSMCT24(bool z_format);
         void local_to_local();

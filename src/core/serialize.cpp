@@ -4,7 +4,7 @@
 
 #define VER_MAJOR 0
 #define VER_MINOR 0
-#define VER_REV 43
+#define VER_REV 50
 
 using namespace std;
 
@@ -242,7 +242,7 @@ void EmotionEngine::save_state(ofstream &state)
 
 void Cop0::load_state(ifstream &state)
 {
-    state.read((char*)&gpr, sizeof(uint32_t));
+    state.read((char*)&gpr, sizeof(gpr));
     state.read((char*)&status, sizeof(status));
     state.read((char*)&cause, sizeof(cause));
     state.read((char*)&EPC, sizeof(EPC));
@@ -259,7 +259,7 @@ void Cop0::load_state(ifstream &state)
 
 void Cop0::save_state(ofstream &state)
 {
-    state.write((char*)&gpr, sizeof(uint32_t));
+    state.write((char*)&gpr, sizeof(gpr));
     state.write((char*)&status, sizeof(status));
     state.write((char*)&cause, sizeof(cause));
     state.write((char*)&EPC, sizeof(EPC));
@@ -642,7 +642,7 @@ void GraphicsInterface::load_state(ifstream &state)
     state.read((char*)&path_queue, sizeof(path_queue));
     state.read((char*)&path3_vif_masked, sizeof(path3_vif_masked));
     state.read((char*)&internal_Q, sizeof(internal_Q));
-    state.read((char*)&path3_dma_waiting, sizeof(path3_dma_waiting));
+    state.read((char*)&path3_dma_running, sizeof(path3_dma_running));
     state.read((char*)&intermittent_mode, sizeof(intermittent_mode));
     state.read((char*)&outputting_path, sizeof(outputting_path));
     state.read((char*)&path3_mode_masked, sizeof(path3_mode_masked));
@@ -668,7 +668,7 @@ void GraphicsInterface::save_state(ofstream &state)
     state.write((char*)&path_queue, sizeof(path_queue));
     state.write((char*)&path3_vif_masked, sizeof(path3_vif_masked));
     state.write((char*)&internal_Q, sizeof(internal_Q));
-    state.write((char*)&path3_dma_waiting, sizeof(path3_dma_waiting));
+    state.write((char*)&path3_dma_running, sizeof(path3_dma_running));
     state.write((char*)&intermittent_mode, sizeof(intermittent_mode));
     state.write((char*)&outputting_path, sizeof(outputting_path));
     state.write((char*)&path3_mode_masked, sizeof(path3_mode_masked));
@@ -775,6 +775,7 @@ void VectorInterface::load_state(ifstream &state)
     state.read((char*)&vif_interrupt, sizeof(vif_interrupt));
     state.read((char*)&vif_stalled, sizeof(vif_stalled));
     state.read((char*)&vif_stop, sizeof(vif_stop));
+    state.read((char*)&vif_forcebreak, sizeof(vif_forcebreak));
     state.read((char*)&vif_cmd_status, sizeof(vif_cmd_status));
     state.read((char*)&internal_WL, sizeof(internal_WL));
 
@@ -837,6 +838,7 @@ void VectorInterface::save_state(ofstream &state)
     state.write((char*)&vif_interrupt, sizeof(vif_interrupt));
     state.write((char*)&vif_stalled, sizeof(vif_stalled));
     state.write((char*)&vif_stop, sizeof(vif_stop));
+    state.write((char*)&vif_forcebreak, sizeof(vif_forcebreak));
     state.write((char*)&vif_cmd_status, sizeof(vif_cmd_status));
     state.write((char*)&internal_WL, sizeof(internal_WL));
 
@@ -1000,12 +1002,35 @@ void SPU::load_state(ifstream &state)
     state.read((char*)&transfer_addr, sizeof(transfer_addr));
     state.read((char*)&current_addr, sizeof(current_addr));
     state.read((char*)&autodma_ctrl, sizeof(autodma_ctrl));
-    state.read((char*)&ADMA_left, sizeof(ADMA_left));
-    state.read((char*)&input_pos, sizeof(input_pos));
+    state.read((char*)&buffer_pos, sizeof(buffer_pos));
     state.read((char*)&IRQA, sizeof(IRQA));
     state.read((char*)&ENDX, sizeof(ENDX));
     state.read((char*)&key_off, sizeof(key_off));
     state.read((char*)&key_on, sizeof(key_on));
+    state.read((char*)&noise, sizeof(noise));
+    state.read((char*)&output_enable, sizeof(output_enable));
+
+    state.read((char*)&reverb, sizeof(reverb));
+    state.read((char*)&effect_enable, sizeof(effect_enable));
+    state.read((char*)&effect_volume_l, sizeof(effect_volume_l));
+    state.read((char*)&effect_volume_r, sizeof(effect_volume_r));
+
+    state.read((char*)&current_buffer, sizeof(current_buffer));
+    state.read((char*)&ADMA_progress, sizeof(ADMA_progress));
+    state.read((char*)&data_input_volume_l, sizeof(data_input_volume_l));
+    state.read((char*)&data_input_volume_r, sizeof(data_input_volume_r));
+    state.read((char*)&core_volume_l, sizeof(core_volume_l));
+    state.read((char*)&core_volume_r, sizeof(core_volume_r));
+    state.read((char*)&MVOLL, sizeof(MVOLL));
+    state.read((char*)&MVOLR, sizeof(MVOLR));
+
+    state.read((char*)&mix_state, sizeof(mix_state));
+    state.read((char*)&voice_mixdry_left, sizeof(voice_mixdry_left));
+    state.read((char*)&voice_mixdry_right, sizeof(voice_mixdry_right));
+    state.read((char*)&voice_mixwet_left, sizeof(voice_mixwet_left));
+    state.read((char*)&voice_mixwet_right, sizeof(voice_mixwet_right));
+    state.read((char*)&voice_pitch_mod, sizeof(voice_pitch_mod));
+    state.read((char*)&voice_noise_gen, sizeof(voice_noise_gen));
 }
 
 void SPU::save_state(ofstream &state)
@@ -1017,10 +1042,33 @@ void SPU::save_state(ofstream &state)
     state.write((char*)&transfer_addr, sizeof(transfer_addr));
     state.write((char*)&current_addr, sizeof(current_addr));
     state.write((char*)&autodma_ctrl, sizeof(autodma_ctrl));
-    state.write((char*)&ADMA_left, sizeof(ADMA_left));
-    state.write((char*)&input_pos, sizeof(input_pos));
+    state.write((char*)&buffer_pos, sizeof(buffer_pos));
     state.write((char*)&IRQA, sizeof(IRQA));
     state.write((char*)&ENDX, sizeof(ENDX));
     state.write((char*)&key_off, sizeof(key_off));
     state.write((char*)&key_on, sizeof(key_on));
+    state.write((char*)&noise, sizeof(noise));
+    state.write((char*)&output_enable, sizeof(output_enable));
+
+    state.write((char*)&reverb, sizeof(reverb));
+    state.write((char*)&effect_enable, sizeof(effect_enable));
+    state.write((char*)&effect_volume_l, sizeof(effect_volume_l));
+    state.write((char*)&effect_volume_r, sizeof(effect_volume_r));
+
+    state.write((char*)&current_buffer, sizeof(current_buffer));
+    state.write((char*)&ADMA_progress, sizeof(ADMA_progress));
+    state.write((char*)&data_input_volume_l, sizeof(data_input_volume_l));
+    state.write((char*)&data_input_volume_r, sizeof(data_input_volume_r));
+    state.write((char*)&core_volume_l, sizeof(core_volume_l));
+    state.write((char*)&core_volume_r, sizeof(core_volume_r));
+    state.write((char*)&MVOLL, sizeof(MVOLL));
+    state.write((char*)&MVOLR, sizeof(MVOLR));
+
+    state.write((char*)&mix_state, sizeof(mix_state));
+    state.write((char*)&voice_mixdry_left, sizeof(voice_mixdry_left));
+    state.write((char*)&voice_mixdry_right, sizeof(voice_mixdry_right));
+    state.write((char*)&voice_mixwet_left, sizeof(voice_mixwet_left));
+    state.write((char*)&voice_mixwet_right, sizeof(voice_mixwet_right));
+    state.write((char*)&voice_pitch_mod, sizeof(voice_pitch_mod));
+    state.write((char*)&voice_noise_gen, sizeof(voice_noise_gen));
 }

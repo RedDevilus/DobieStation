@@ -33,7 +33,8 @@ EE Cycles Per Frame between 5926400 & 5926912
 //NTSC Interlaced Timings
 #define CYCLES_PER_FRAME 4920115 //4920115.2 EE cycles to be exact FPS of 59.94005994005994hz
 #define VBLANK_START_CYCLES 4489019 //4489019.391883126 Guess, exactly 23 HBLANK's before the end
-
+#define HBLANK_CYCLES 18742
+#define GS_VBLANK_DELAY 65622 //CSR FIELD swap/vblank happens ~65622 cycles after the INTC VBLANK_START event
 
 //These constants are used for the fast boot hack for .isos
 #define EELOAD_START 0x82000
@@ -74,6 +75,7 @@ Emulator::Emulator() :
     set_ee_mode(CPU_MODE::DONT_CARE);
     set_vu0_mode(CPU_MODE::DONT_CARE);
     set_vu1_mode(CPU_MODE::DONT_CARE);
+    spu.gaussianConstructTable();
 }
 
 Emulator::~Emulator()
@@ -215,8 +217,11 @@ void Emulator::reset()
 
     vblank_start_id = scheduler.register_function([this] (uint64_t param) { vblank_start(); });
     vblank_end_id = scheduler.register_function([this] (uint64_t param) { vblank_end(); });
+    hblank_event_id = scheduler.register_function([this](uint64_t param) { hblank_event(); });
     spu_event_id = scheduler.register_function([this] (uint64_t param) { gen_sound_sample(); });
+    gs_vblank_event_id = scheduler.register_function([this](uint64_t param) { GS_vblank_event(); });
 
+    scheduler.add_event(hblank_event_id, HBLANK_CYCLES);
     start_sound_sample_event();
 }
 
@@ -228,28 +233,39 @@ void Emulator::print_state()
     iop.print_state();
 }
 
+void Emulator::hblank_event()
+{
+    gs.assert_HBLANK();
+    scheduler.add_event(hblank_event_id, HBLANK_CYCLES);
+}
+
+void Emulator::GS_vblank_event()
+{
+    gs.assert_VSYNC();
+    gs.swap_CSR_field();
+}
+
 void Emulator::vblank_start()
 {
+    gs.render_CRT();
     VBLANK_sent = true;
-    gs.set_VBLANK(true);
-
+    gs.set_VBLANK_irq(true);
     timers.gate(true, true);
     cdvd.vsync();
     //cpu.set_disassembly(frames >= 223 && frames < 225);
     printf("VSYNC FRAMES: %d\n", frames);
-    gs.assert_VSYNC();
     iop_intc.assert_irq(0);
+    scheduler.add_event(gs_vblank_event_id, GS_VBLANK_DELAY);
 }
 
 void Emulator::vblank_end()
 {
     //VBLANK end
     iop_intc.assert_irq(11);
-    gs.set_VBLANK(false);
+    gs.set_VBLANK_irq(false);
     timers.gate(true, false);
     frame_ended = true;
     frames++;
-    gs.render_CRT();
 }
 
 void Emulator::cdvd_event()
@@ -317,6 +333,14 @@ void Emulator::fast_boot()
 {
     if (skip_BIOS_hack == LOAD_DISC)
     {
+        if (cdvd.read_disc_type() != CDVD_DISC_PS2DVD)
+        {
+            if (cdvd.read_disc_type() != CDVD_DISC_PS2CD)
+            {
+                set_skip_BIOS_hack(SKIP_HACK::NONE);
+                return;
+            }
+        }
         //We need to find the string "rom0:OSDSYS" and replace it with the disc's executable.
         std::string path = cdvd.get_ps2_exec_path();
 
@@ -510,6 +534,8 @@ uint8_t Emulator::read8(uint32_t address)
         return IOP_RAM[address & 0x1FFFFF];
     if (address >= 0x10000000 && address < 0x10002000)
         return (timers.read32(address & ~0xF) >> (8 * (address & 0x3)));
+    if ((address & (0xFF000000)) == 0x12000000)
+        return (gs.read32_privileged(address & ~0x3) >> (8 * (address & 0x3)));
     if (address >= 0x10008000 && address < 0x1000F000)
         return dmac.read8(address);
     if (address >= 0x11000000 && address < 0x11004000)
@@ -539,6 +565,8 @@ uint16_t Emulator::read16(uint32_t address)
         return (uint16_t)timers.read32(address);
     if (address >= 0x10008000 && address < 0x1000F000)
         return dmac.read16(address);
+    if ((address & (0xFF000000)) == 0x12000000)
+        return (gs.read32_privileged(address & ~0x3) >> (8 * (address & 0x2)));
     if (address >= 0x1C000000 && address < 0x1C200000)
         return *(uint16_t*)&IOP_RAM[address & 0x1FFFFF];
     if (address >= 0x11000000 && address < 0x11004000)
@@ -681,6 +709,14 @@ uint64_t Emulator::read64(uint32_t address)
         return gs.read64_privileged(address);
     if (address >= 0x1C000000 && address < 0x1C200000)
         return *(uint64_t*)&IOP_RAM[address & 0x1FFFFF];
+    if (address >= 0x11000000 && address < 0x11004000)
+        return vu0.read_instr<uint64_t>(address);
+    if (address >= 0x11004000 && address < 0x11008000)
+        return vu0.read_mem<uint64_t>(address);
+    if (address >= 0x11008000 && address < 0x1100C000)
+        return vu1.read_instr<uint64_t>(address);
+    if (address >= 0x1100C000 && address < 0x11010000)
+        return vu1.read_mem<uint64_t>(address);
     switch (address)
     {
         case 0x10002000:
@@ -706,6 +742,9 @@ uint128_t Emulator::read128(uint32_t address)
         return vu1.read_instr<uint128_t>(address);
     if (address >= 0x1100C000 && address < 0x11010000)
         return vu1.read_mem<uint128_t>(address);
+
+    if (address == 0x10005000)
+        return std::get<0>(vif1.readFIFO());
 
     printf("Unrecognized read128 at physical addr $%08X\n", address);
     return uint128_t::from_u32(0);
@@ -1314,6 +1353,9 @@ void Emulator::iop_write8(uint32_t address, uint8_t value)
         case 0x1F402017:
             cdvd.write_S_data(value);
             return;
+        case 0x1F40203A:
+            cdvd.write_mecha_decode(value);
+            return;
         //POST2?
         case 0x1F802070:
             return;
@@ -1343,7 +1385,7 @@ void Emulator::iop_write16(uint32_t address, uint16_t value)
         *(uint16_t*)&IOP_RAM[address] = value;
         return;
     }
-    if (address >= 0x1F900000 && address < 0x1F900400)
+    if ((address >= 0x1F900000 && address < 0x1F900400) || (address >= 0x1F900760 && address < 0x1F900788))
     {
         spu.write16(address, value);
         return;
@@ -1776,6 +1818,11 @@ void Emulator::iop_puts()
 GraphicsSynthesizer& Emulator::get_gs()
 {
     return gs;
+}
+
+void Emulator::set_wav_output(bool state)
+{
+    spu2.wav_output = state;
 }
 
 void Emulator::request_gsdump_toggle()

@@ -16,6 +16,7 @@ set(SOURCES
     scheduler.cpp
     serialize.cpp
     sif.cpp
+    audio/utils.cpp
     ee/bios_hle.cpp
     ee/cop0.cpp
     ee/cop1.cpp
@@ -72,6 +73,7 @@ set(SOURCES
     iop/cdvd/cdvd.cpp
     iop/cdvd/cso_reader.cpp
     iop/cdvd/iso_reader.cpp
+    iop/cdvd/chd_reader.cpp
     iop/firewire.cpp
     iop/gamepad.cpp
     iop/iop.cpp
@@ -82,7 +84,11 @@ set(SOURCES
     iop/iop_timers.cpp
     iop/memcard.cpp
     iop/sio2.cpp
-    iop/spu.cpp
+    iop/spu/spu.cpp
+    iop/spu/spu_adpcm.cpp
+    iop/spu/spu_envelope.cpp
+    iop/spu/spu_interpolate.cpp
+    iop/spu/spu_reverb.cpp
     jitcommon/emitter64.cpp
     jitcommon/ir_block.cpp
     jitcommon/ir_instr.cpp
@@ -103,6 +109,7 @@ set(HEADERS
     int128.hpp
     scheduler.hpp
     sif.hpp
+    audio/utils.hpp
     ee/bios_hle.hpp
     ee/cop0.hpp
     ee/cop1.hpp
@@ -150,6 +157,7 @@ set(HEADERS
     iop/cdvd/cdvd.hpp
     iop/cdvd/cso_reader.hpp
     iop/cdvd/iso_reader.hpp
+    iop/cdvd/chd_reader.hpp
     iop/firewire.hpp
     iop/gamepad.hpp
     iop/iop.hpp
@@ -160,7 +168,10 @@ set(HEADERS
     iop/iop_timers.hpp
     iop/memcard.hpp
     iop/sio2.hpp
-    iop/spu.hpp
+    iop/spu/spu.hpp
+    iop/spu/spu_adpcm.hpp
+    iop/spu/spu_envelope.hpp
+    iop/spu/spu_utils.hpp
     jitcommon/emitter64.hpp
     jitcommon/ir_block.hpp
     jitcommon/ir_instr.hpp
@@ -170,5 +181,5 @@ add_library(${TARGET} ${SOURCES} ${HEADERS})
 add_library(Dobie::Core ALIAS ${TARGET})
 
 target_include_directories(${TARGET} PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(${TARGET} Ext::libdeflate Threads::Threads)
+target_link_libraries(${TARGET} Threads::Threads libchdr zlib)
 dobie_cxx_compile_options(${TARGET})

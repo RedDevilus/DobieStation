@@ -166,15 +166,17 @@ void EmotionEngine::run(int cycles)
         cycles_to_run = 0;
     }
 
+    cp0->count_up(cycles);
+
     if (cp0->int_enabled())
     {
         if (cp0->cause.int0_pending)
             int0();
         else if (cp0->cause.int1_pending)
             int1();
+        else if (cp0->cause.timer_int_pending)
+            int_timer();
     }
-
-    cp0->count_up(cycles);
 }
 
 void EmotionEngine::run_interpreter()
@@ -964,7 +966,8 @@ void EmotionEngine::break_exception()
 
 void EmotionEngine::trap_exception()
 {
-    Errors::die("[EE] TRAP opcode called (PC: $%08X)", PC);
+    handle_exception(0x8000017C, 0xD);
+    Errors::print_warning("[EE] TRAP opcode called (PC: $%08X)", PC);
 }
 
 void EmotionEngine::deci2call(uint32_t func, uint32_t param)
@@ -1033,6 +1036,16 @@ void EmotionEngine::int1()
     }
 }
 
+void EmotionEngine::int_timer()
+{
+    if (cp0->status.timer_int_mask)
+    {
+        printf("[EE] INT TIMER!\n");
+        //can_disassemble = true;
+        handle_exception(0x80000200, 0);
+    }
+}
+
 void EmotionEngine::set_int0_signal(bool value)
 {
     cp0->cause.int0_pending = value;
@@ -1049,6 +1062,12 @@ void EmotionEngine::set_int1_signal(bool value)
     cp0->cause.int1_pending = value;
     if (value)
         printf("[EE] Set INT1\n");
+}
+
+void EmotionEngine::tlbr()
+{
+    int index = cp0->gpr[0];
+    cp0->read_tlb(index);
 }
 
 void EmotionEngine::tlbwi()
@@ -1165,7 +1184,7 @@ void EmotionEngine::mfpc(int pc_reg, int reg)
         pcr = (int32_t)cp0->PCR1;
     else
         pcr = (int32_t)cp0->PCR0;
-    printf("[EE] MFPC %d: $%08X\n", pc_reg, pcr);
+    //printf("[EE] MFPC %d: $%08X\n", pc_reg, pcr);
     set_gpr<int64_t>(reg, pcr);
 }
 
